@@ -1,0 +1,99 @@
+{% extends 'models/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!--<style>-->
+
+
+<!--.container {-->
+<!--  display: flex;-->
+<!--  flex-wrap: wrap;-->
+<!--  justify-content: flex-start;-->
+<!--  align-items: flex-start;-->
+<!--  width: 100%;-->
+<!--  max-width: 100%;-->
+<!--  margin: 0;-->
+<!--  padding: 0;-->
+<!--}-->
+
+<!--.filter-container {-->
+<!--  width: 100%;-->
+<!--  max-width: 200px;-->
+<!--}-->
+
+<!--.list-container {-->
+<!--  flex-grow: 1;-->
+<!--  max-width: calc(100% - 250px);-->
+<!--  margin-left: 20px;-->
+<!--}-->
+
+
+<!--</style>-->
+ <link type="text/css" href="{% static 'models/css/filter2.css' %}" rel="stylesheet"/>
+<div class="container">
+    <div class="filter-container">
+        <form method="get">
+            {{ filter.form.as_p }}
+            <button type="submit">Фильтр</button>
+        </form>
+    </div>
+    <div class="list-container">
+        <!-- Ваш фильтруемый список здесь -->
+        <ul class="list-articles">
+        {% for p in filter.qs %}
+        <li>
+            <div class="article-panel">
+                <p class="first">{{p.name}} {{p.surname}}</p>
+                <p class="last">Дата: {{p.time_update|date:"d-m-Y H:i:s"}}</p>
+            </div>
+
+            {% if p.avatar %}
+            <p><img class="img-article-left thumb" src="{{p.avatar.url}}"></p>
+            {% endif %}
+
+            <h2>{{p.title}}</h2>
+            {% autoescape on %}
+            {{p.content|linebreaks|truncatewords:50}}
+            {% endautoescape %}
+            <div class="clear"></div>
+            <p class="link-read-post"><a href="{{ p.get_absolute_url }}">Читать пост</a></p>
+        </li>
+        {% endfor %}
+            </ul>
+    </div>
+</div>
+
+{% endblock %}
+
+
+
+<!--<h3 class="link-create"><a href="{% url create %}">Создать карточку</a></h3>-->
+<!--<ul class="list-articles">-->
+
+<!--&lt;!&ndash;     other filter elements here &ndash;&gt;-->
+<!--    <form method="get">-->
+<!--        {{ filter.form.as_p }}-->
+<!--        <button type="submit">Фильтр</button>-->
+<!--    </form>-->
+
+<!--    {% for p in filter.qs %}-->
+<!--    <li>-->
+<!--        <div class="article-panel">-->
+<!--            <p class="first">{{p.name}} {{p.surname}}</p>-->
+<!--            <p class="last">Дата: {{p.time_update|date:"d-m-Y H:i:s"}}</p>-->
+<!--        </div>-->
+
+<!--        {% if p.avatar %}-->
+<!--        <p><img class="img-article-left thumb" src="{{p.avatar.url}}"></p>-->
+<!--        {% endif %}-->
+
+<!--        <h2>{{p.title}}</h2>-->
+<!--        {% autoescape on %}-->
+<!--        {{p.content|linebreaks|truncatewords:50}}-->
+<!--        {% endautoescape %}-->
+<!--        <div class="clear"></div>-->
+<!--        <p class="link-read-post"><a href="{{ p.get_absolute_url }}">Читать пост</a></p>-->
+<!--    </li>-->
+<!--    {% endfor %}-->
+<!--</ul>-->

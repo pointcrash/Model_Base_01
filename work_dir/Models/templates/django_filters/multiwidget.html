@@ -1,0 +1,5 @@
+{% for widget in widget.subwidgets %}
+    <div class="widget-{% if widget.attrs.class %}{{ widget.attrs.class }} {% endif %}">
+        {{ widget }}
+    </div>
+{% endfor %}
