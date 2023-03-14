@@ -1,15 +1,82 @@
 from django import forms
+from django.contrib.auth import authenticate
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.forms import Textarea
+from multiupload.fields import MultiFileField
 
 from .models import *
 
-class CreateModel(forms.ModelForm):
-    gender = forms.ChoiceField(choices=Model.GENDER_CHOICES, widget=forms.RadioSelect(), label='Пол')
-    tattoo_description = forms.CharField(widget=Textarea(attrs={'cols': 60, 'rows': 10}))
+
+class CustomUserCreationForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=30, required=True)
+    last_name = forms.CharField(max_length=30, required=True)
+
+    class Meta:
+        model = User
+        fields = UserCreationForm.Meta.fields + ('email', 'first_name', 'last_name',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update({'class': 'form-control'})
+        self.fields['password1'].widget.attrs.update({'class': 'form-control'})
+        self.fields['password2'].widget.attrs.update({'class': 'form-control'})
+        self.fields['email'].widget.attrs.update({'class': 'form-control'})
+        self.fields['first_name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['last_name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['email'].error_messages = {'required': 'Please enter your email address.'}
+        self.fields['first_name'].error_messages = {'required': 'Please enter your first name.'}
+        self.fields['last_name'].error_messages = {'required': 'Please enter your last name.'}
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        if commit:
+            user.save()
+        return user
+
+
+class EditProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email')
+
+
+class LoginForm(AuthenticationForm):
+    username = forms.CharField(label='Логин', max_length=30,
+                               widget=forms.TextInput(attrs={'class': 'form-control', 'name': 'username'}))
+    password = forms.CharField(label='Пароль', max_length=30,
+                               widget=forms.PasswordInput(attrs={'class': 'form-control', 'name': 'password'}))
+class CreateModelForm(forms.ModelForm):
     class Meta:
         model = Model
-        # fields = ['name', 'surname', 'email', 'avatar', 'is_published']
-        fields = '__all__'
+        fields = ['city', 'age', 'gender', 'height', 'weight', 'bust', 'waist', 'hips', 'shoe_size',
+                  'clothing_size', 'hair_color', 'eye_color', 'tattoo', 'tattoo_description', 'in_under_photos',
+                  'nu_photos', 'tfp_photos', 'avatar', 'is_published']
+
+        widgets = {
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'age': forms.NumberInput(attrs={'class': 'form-control'}),
+            'gender': forms.Select(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'bust': forms.NumberInput(attrs={'class': 'form-control'}),
+            'waist': forms.NumberInput(attrs={'class': 'form-control'}),
+            'hips': forms.NumberInput(attrs={'class': 'form-control'}),
+            'shoe_size': forms.NumberInput(attrs={'class': 'form-control'}),
+            'clothing_size': forms.Select(attrs={'class': 'form-control'}),
+            'hair_color': forms.TextInput(attrs={'class': 'form-control'}),
+            'eye_color': forms.TextInput(attrs={'class': 'form-control'}),
+            'tattoo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'tattoo_description': forms.TextInput(attrs={'class': 'form-control'}),
+            'in_under_photos': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'nu_photos': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'tfp_photos': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'avatar': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 class CreatePh(forms.ModelForm):
     class Meta:
         model = Photographer
@@ -40,3 +107,6 @@ class AgeRangeWidget(forms.MultiWidget):
                '</div>' + \
                rendered_widgets[1] + \
                '</div>'
+
+class PhotoForm(forms.Form):
+    images = MultiImageField(max_file_size=1024*1024*5, max_num=25)

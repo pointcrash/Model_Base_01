@@ -1,0 +1,16 @@
+<!-- upload_photos.html -->
+{% extends 'models/base.html' %}
+{% load static %}
+
+{% block content %}
+  <h1>Загрузка фотографий</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Загрузить</button>
+  </form>
+
+  <div id="preview"></div>
+
+<script src="{% static 'models/js/upload_photos.js' %}"></script>
+{% endblock %}

@@ -22,20 +22,24 @@ from dbmodels import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
-    path('models/', ModelsPage.as_view(), name='models'),
-    path('', HomePageView, name='home'),
-    path('photographer/', PhotographerPage.as_view(), name='photographers'),
-    path('stuff/', StuffView, name='stuff'),
-    path('studios/', HomePageView, name='studios'),
-    path('locations/', LocationsView, name='locations'),
-    path('gallery/', HomePageView, name='gallery'),
-    path('entry/', HomePageView, name='entry'),
-    path('post/<int:post_id>/', show_post, name='post'),
+    path('home', home, name='home'),
     path('register/', RegisterUser.as_view(), name='register'),
-    path('login/', LoginUser.as_view(), name='login'),
+    path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', logout_user, name='logout'),
-    path('create_model/', CreateModel.as_view(), name='create_model'),
-    path('create_ph/', CreatePh.as_view(), name='create_ph')
+    path('profile/', profile, name='profile'),
+    path('profile/edit', edit_profile, name='edit_profile'),
+    path('models/', ModelsPage.as_view(), name='models'),
+    path('photographer/', PhotographerPage.as_view(), name='photographers'),
+    # path('stuff/', StuffView, name='stuff'),
+    path('studios/', home, name='studios'),
+    # path('locations/', LocationsView, name='locations'),
+    path('gallery/', home, name='gallery'),
+    path('entry/', home, name='entry'),
+    path('post/<int:post_id>/', show_post, name='post'),
+    path('create_model/', model_form_view, name='create_model'),
+    path('create_ph/', CreatePh.as_view(), name='create_ph'),
+    path('upload_photos.html/', UploadPhotosView.as_view(), name='upload_photos'),
+    path('photos.html/', view_photos, name='view_photos'),
 ]
 
 if settings.DEBUG:

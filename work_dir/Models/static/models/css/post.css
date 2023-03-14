@@ -1,0 +1,46 @@
+.container {
+width: 97%;
+margin: 0 auto;
+display: flex;
+flex-wrap: wrap;
+justify-content: space-between;
+}
+
+.container section {
+width: 47%;
+padding: 20px;
+margin-bottom: 30px;
+background-color: #f5f5f5;
+border: 1px solid #ccc;
+border-radius: 5px;
+}
+
+.container h2 {
+font-size: 24px;
+font-weight: bold;
+margin-bottom: 15px;
+}
+
+.container ul {
+list-style: none;
+margin: 0;
+padding: 0;
+}
+
+.container li {
+margin-bottom: 10px;
+}
+
+.container li strong {
+font-weight: bold;
+margin-right: 5px;
+}
+
+.img-article-left {
+float: left;
+margin-right: 20px;
+width: 200px;
+height: auto;
+border-radius: 5px;
+}
+

@@ -3,33 +3,6 @@
 
 {% block content %}
 
-<!--<style>-->
-
-
-<!--.container {-->
-<!--  display: flex;-->
-<!--  flex-wrap: wrap;-->
-<!--  justify-content: flex-start;-->
-<!--  align-items: flex-start;-->
-<!--  width: 100%;-->
-<!--  max-width: 100%;-->
-<!--  margin: 0;-->
-<!--  padding: 0;-->
-<!--}-->
-
-<!--.filter-container {-->
-<!--  width: 100%;-->
-<!--  max-width: 200px;-->
-<!--}-->
-
-<!--.list-container {-->
-<!--  flex-grow: 1;-->
-<!--  max-width: calc(100% - 250px);-->
-<!--  margin-left: 20px;-->
-<!--}-->
-
-
-<!--</style>-->
  <link type="text/css" href="{% static 'models/css/filter2.css' %}" rel="stylesheet"/>
 <div class="container">
     <div class="filter-container">
@@ -44,7 +17,7 @@
         {% for p in filter.qs %}
         <li>
             <div class="article-panel">
-                <p class="first">{{p.name}} {{p.surname}}</p>
+                <p class="first">{{p.age}}</p>
                 <p class="last">Дата: {{p.time_update|date:"d-m-Y H:i:s"}}</p>
             </div>
 

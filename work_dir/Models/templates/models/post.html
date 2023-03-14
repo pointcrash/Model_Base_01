@@ -1,0 +1,61 @@
+{% extends 'models/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="post.css">
+<link type="text/css" href="{% static 'models/css/post.css' %}" rel="stylesheet"/>
+
+<div class="container">
+<section>
+    <h2>Основная информация</h2>
+    {% if post.avatar %}
+    <p><img class="img-article-left" src="{{ post.avatar.url }}"></p>
+    {% endif %}
+    <ul>
+        <li><strong>Имя и фамилия:</strong> {{ post.name }} {{ post.surname }}</li>
+        <li><strong>Возраст:</strong> {{ post.age }}</li>
+        <li><strong>Пол:</strong> {{ post.gender }}</li>
+        <li><strong>Рост:</strong> {{ post.height }} см</li>
+        <li><strong>Вес:</strong> {{ post.weight }} кг</li>
+        <li><strong>Обхват груди:</strong> {{ post.bust }} см</li>
+        <li><strong>Обхват талии:</strong> {{ post.waist }} см</li>
+        <li><strong>Обхват бедер:</strong> {{ post.hips }} см</li>
+        <li><strong>Размер обуви:</strong> {{ post.shoe_size }}</li>
+        <li><strong>Размер одежды:</strong> {{ post.clothing_size }}</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Внешность и стиль</h2>
+    <ul>
+        <li><strong>Цвет волос:</strong> {{ post.hair_color }}</li>
+        <li><strong>Цвет глаз:</strong> {{ post.eye_color }}</li>
+        <li><strong>Татуировки:</strong> {% if post.tattoo %} Есть {% else %} Отсутствуют {% endif %}</li>
+        {% if post.tattoo %}
+        <li><strong>Описание татуировок:</strong> {{ post.tattoo_description }}</li>
+        {% endif %}
+    </ul>
+</section>
+<!--</div>-->
+<!--<div class="container">-->
+<section>
+    <h2>Дополнительная информация</h2>
+    <ul>
+        <li><strong>Ню-фотографии:</strong> {% if post.nu_photos %} Да {% else %} Нет {% endif %}</li>
+        <li><strong>Готов/а к фотосессии в нижнем белье:</strong> {% if post.in_under_photos %} Да {% else %} Нет
+            {% endif %}
+        </li>
+    </ul>
+</section>
+
+<section>
+    <h2>Время и дата</h2>
+    <ul>
+        <li><strong>Дата создания:</strong> {{ post.time_create }}</li>
+        <li><strong>Дата обновления:</strong> {{ post.time_update }}</li>
+        <li><strong>Опубликована:</strong> {% if post.is_published %} Да {% else %} Нет {% endif %}</li>
+    </ul>
+</section>
+</div>
+{% endblock %}

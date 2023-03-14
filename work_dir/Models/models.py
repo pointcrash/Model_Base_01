@@ -1,13 +1,13 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
+from multiupload.fields import MultiImageField
 
 
 # Create your models here.
 class Model(models.Model):
-    name = models.CharField(max_length=12, verbose_name='Имя')
-    surname = models.CharField(max_length=20, verbose_name='Фамилия')
-    email = models.EmailField(max_length=30, blank=True)
+    owner = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    city = models.CharField(max_length=250, null=True, verbose_name='Город')
     age = models.PositiveSmallIntegerField(verbose_name='Возраст')
     GENDER_CHOICES = [
         ('M', 'Мужской'),
@@ -41,6 +41,7 @@ class Model(models.Model):
 
     in_under_photos = models.BooleanField(default=False, verbose_name='Согласие на фото в нижнем белье/купальнике')
     nu_photos = models.BooleanField(default=False, verbose_name='Согласие на ню-фото (18+)')
+    tfp_photos = models.BooleanField(default=False, verbose_name='Сотрудничество по ТФП', null=True)
 
     avatar = models.ImageField(upload_to='photos/%Y/%m/%d/', blank=True, verbose_name='Фото профиля')
     time_create = models.DateTimeField(auto_now_add=True)
@@ -48,8 +49,10 @@ class Model(models.Model):
     is_published = models.BooleanField(default=True, verbose_name='Опубликовать')
 
 
-    def __str__(self):
-        return self.surname
+
+
+    # def __str__(self):
+    #     return self.surname
 
     def get_absolute_url(self):
         return reverse('post', kwargs={'post_id': self.pk})
@@ -88,11 +91,8 @@ class Stuff(models.Model):
     def __str__(self):
         return self.surname
 
-class Category(models.Model):
-    name = models.CharField(max_length=20, db_index=True)
 
-    def __str__(self):
-        return self.name
 
-    def get_absolute_url(self):
-        return reverse('category', kwargs={'cat_id': self.pk})
+class Photo(models.Model):
+    owner = models.ForeignKey(Model, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='photos/%Y/%m/%d/')
