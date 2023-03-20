@@ -1,24 +1,16 @@
-import json
-
 from django.contrib import messages
-from django.contrib.auth import logout, login, authenticate
+from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.views import LoginView
 from django.db import IntegrityError
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
-from django.views import View
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.http import require_POST
-from django.views.generic import ListView, CreateView, FormView
+
+from django.views.generic import CreateView
 from django_filters.views import FilterView
 
-from Models.filters import ModelFilter, PhotographerFilter
+from Models.filters import *
 from Models.forms import *
 from Models.models import *
 
@@ -80,7 +72,7 @@ class ModelsPage(FilterView):
         'post': 'model_post',
     }
     def get_queryset(self):
-        return Model.objects.filter(is_published=True)
+        return Model.objects.filter(is_published=True).order_by('time_create')
 
 
 class PhotographerPage(FilterView):
@@ -95,22 +87,22 @@ class PhotographerPage(FilterView):
     }
 
     def get_queryset(self):
-        return Photographer.objects.filter(is_published=True)
+        return Photographer.objects.filter(is_published=True).order_by('time_create')
 
 
-class PhotographerPage(FilterView):
-    model = Photographer
+class StaffPage(FilterView):
+    model = Stuff
     template_name = 'bootstrap/content.html'
-    filterset_class = PhotographerFilter
+    filterset_class = StaffFilter
     extra_context = {
         'title': 'Стилисты',
         'object': 'стилиста',
-        'create': 'create_ph',
+        'create': 'create_staff',
         'post': 'staff_post',
     }
 
     def get_queryset(self):
-        return Photographer.objects.filter(is_published=True)
+        return Stuff.objects.filter(is_published=True).order_by('time_create')
 
 
 
@@ -167,33 +159,57 @@ def show_ph_post(request, post_id):
     return render(request, 'bootstrap/ph_post.html', context=context)
 
 
-@login_required
-def model_form_view(request):
+def show_staff_post(request, post_id):
+    post = get_object_or_404(Stuff, pk=post_id)
+    model_photos = ImageStuff.objects.filter(model=post)
+    albums = Album.objects.filter(user=post.owner)
+    type = post.type.values_list('name', flat=True)
+
     if request.method == 'POST':
-        form = CreateModelForm(request.POST, request.FILES)
+        form = UploadImageForm(request.POST, request.FILES)
         if form.is_valid():
-            # Check if the user already has a model card
-            if Model.objects.filter(owner=request.user).exists():
-                messages.error(request, 'У вас уже есть карточка модели')
-                return redirect(reverse_lazy('create_model'))
-
-            try:
-                # Save the model object
-                model = form.save(commit=False)
-                model.owner = request.user
-                model.save()
-                return redirect('home')
-            except IntegrityError:
-                messages.error(request, 'Произошла ошибка при сохранении модели')
-                return redirect(reverse_lazy('create_model'))
+            images = request.FILES.getlist('images') # get list of uploaded images
+            for image in images:
+                ImageStuff.objects.create(model=post, image=image) # create Image instance for each uploaded image
+            return redirect('staff_post', post_id=request.user.stuff.pk)
     else:
-        form = CreateModelForm()
+        form = UploadImageForm()
 
-    context = {'form': form}
-    return render(request, 'bootstrap/create_model.html', context)
+    context = {
+        'model_photos': model_photos,
+        'post': post,
+        'albums': albums,
+        'user': request.user,
+        'form': form,
+        'type': type,
+    }
+
+    return render(request, 'bootstrap/staff_post.html', context=context)
+
+
+@login_required
+def create_model(request):
+    owner_id = request.user.id
+    if Model.objects.filter(owner_id=owner_id).exists():
+        error_message = 'Модель уже зарегистрирован/а для данного пользователя'
+        return render(request, 'bootstrap/create_ph.html', {'error_message': error_message})
+    if request.method == 'POST':
+        form = PhForm(request.POST, request.FILES)
+        if form.is_valid():
+            model = form.save(commit=False)
+            model.owner = request.user
+            model.save()
+            return redirect('ph_post', pk=model.pk)
+    else:
+        form = PhForm()
+    return render(request, 'bootstrap/create_ph.html', {'form': form, 'context': 'модели'})
 
 @login_required
 def create_ph(request):
+    owner_id = request.user.id
+    if Photographer.objects.filter(owner_id=owner_id).exists():
+        error_message = 'Фотограф уже зарегистрирован для данного пользователя'
+        return render(request, 'bootstrap/create_ph.html', {'error_message': error_message})
     if request.method == 'POST':
         form = PhForm(request.POST, request.FILES)
         if form.is_valid():
@@ -203,7 +219,25 @@ def create_ph(request):
             return redirect('ph_post', pk=photographer.pk)
     else:
         form = PhForm()
-    return render(request, 'bootstrap/create_ph.html', {'form': form})
+    return render(request, 'bootstrap/create_ph.html', {'form': form, 'context': 'фотографа'})
+
+@login_required
+def create_staff(request):
+    owner_id = request.user.id
+    if Stuff.objects.filter(owner_id=owner_id).exists():
+        error_message = 'Стилист уже зарегистрирован для данного пользователя'
+        return render(request, 'bootstrap/create_ph.html', {'error_message': error_message})
+    if request.method == 'POST':
+        form = StaffForm(request.POST, request.FILES)
+        if form.is_valid():
+            stuff = form.save(commit=False)
+            stuff.owner = request.user
+            stuff.save()
+            return redirect('staff_post', pk=stuff.pk)
+    else:
+        form = StaffForm()
+    return render(request, 'bootstrap/create_ph.html', {'form': form, 'context': 'стилиста'})
+
 
 
 @login_required
@@ -217,6 +251,15 @@ def delete_photo(request, photo_id):
 @login_required
 def delete_photo_ph(request, photo_id):
     photo = get_object_or_404(ImagePh, pk=photo_id)
+    if photo.model.owner != request.user:
+        return JsonResponse({'status': 'error', 'message': 'Вы не можете удалить эту фотографию'})
+    photo.delete()
+    return JsonResponse({'status': 'ok', 'message': 'Фотография успешно удалена'})
+
+
+@login_required
+def delete_photo_staff(request, photo_id):
+    photo = get_object_or_404(ImageStuff, pk=photo_id)
     if photo.model.owner != request.user:
         return JsonResponse({'status': 'error', 'message': 'Вы не можете удалить эту фотографию'})
     photo.delete()

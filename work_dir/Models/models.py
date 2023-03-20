@@ -129,6 +129,25 @@ class StuffType(models.Model):
         return self.name
 
 
+class Locations(models.Model):
+    owner = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    city = models.CharField(max_length=250, null=True, verbose_name='Город')
+    about = models.TextField(null=True, verbose_name='О локации')
+    how_to_go = models.TextField(null=True, verbose_name='Как добраться')
+    point_link = models.URLField(null=True, verbose_name='Ссылка на карте')
+
+    image = models.ImageField(upload_to='loctions/%Y/%m/%d/', blank=True, verbose_name='Фотографии места')
+    time_create = models.DateTimeField(auto_now_add=True)
+    time_update = models.DateTimeField(auto_now=True)
+
+    # def __str__(self):
+    #     return self.owner.username
+
+    def get_absolute_url(self):
+        return reverse('post', kwargs={'post_id': self.pk})
+
+
+
 # {{{{{{{    БЛОК ОБРАБОТКИ ФОТОГРАФИЙ       }}}}}}}}}}}}}}}
 
 def user_directory_path(instance, filename):

@@ -151,6 +151,20 @@ class PhForm(forms.ModelForm):
     )
 
 
+class StaffForm(forms.ModelForm):
+    class Meta:
+        model = Stuff
+        fields = ['city', 'age', 'gender', 'type', 'tfp_photos', 'avatar', 'is_published']
+
+    city = forms.CharField(max_length=250, label='Город', widget=forms.TextInput(attrs={'class': 'form-control'}))
+    age = forms.IntegerField(label='Возраст', widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    gender = forms.ChoiceField(choices=Stuff.GENDER_CHOICES, label='Пол', widget=forms.Select(attrs={'class': 'form-select'}))
+    type = forms.ModelMultipleChoiceField(queryset=StuffType.objects.all(), label='Тип', widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': '5'}))
+    tfp_photos = forms.BooleanField(label='Сотрудничество по TFP', widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), required=False)
+    avatar = forms.ImageField(label='Фото профиля', required=False, widget=forms.ClearableFileInput(attrs={'class': 'form-control'}))
+    is_published = forms.BooleanField(label='Опубликовать', widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), required=False)
+
+
 class AgeRangeWidget(forms.MultiWidget):
     def __init__(self, attrs=None):
         widgets = (

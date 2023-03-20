@@ -9,7 +9,7 @@ from .models import *
 
 class ModelFilter(FilterSet):
     city = CharFilter(field_name='city', lookup_expr='icontains', label='Город',
-                      widget=forms.TextInput(attrs={'placeholder': 'Введите город'}))
+                      widget=forms.TextInput(attrs={'class': 'form-control'}))
     clothing_size = ChoiceFilter(choices=Model.CLOTHING_SIZE, label='Размер одежды', widget=forms.Select(attrs={'class': 'form-select'}))
     gender = ChoiceFilter(choices=Model.GENDER_CHOICES, label='Пол', widget=forms.Select(attrs={'class': 'form-select'}))
     age = RangeFilter(field_name='age', lookup_expr=['gte', 'lte'], widget=AgeRangeWidget(), label='Возраст')
@@ -36,7 +36,7 @@ class ModelFilter(FilterSet):
 
 
 class PhotographerFilter(FilterSet):
-    city = CharFilter(field_name='city', lookup_expr='icontains', label='Город', widget=forms.TextInput(attrs={'placeholder': 'Введите город'}))
+    city = CharFilter(field_name='city', lookup_expr='icontains', label='Город', widget=forms.TextInput(attrs={'class': 'form-control'}))
     gender = ChoiceFilter(choices=Photographer.GENDER_CHOICES, label='Пол', widget=forms.Select(attrs={'class': 'form-select'}))
     genre = ModelMultipleChoiceFilter(field_name='genre', to_field_name='id', queryset=ShootingGenre.objects.all(), label='Жанр', widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': '5'}))
     tfp_photos = BooleanFilter(label='Сотрудничество по TFP', widget=forms.NullBooleanSelect(attrs={'class': 'form-select'}))
@@ -46,4 +46,16 @@ class PhotographerFilter(FilterSet):
     class Meta:
         model = Photographer
         fields = ['city', 'gender', 'genre', 'tfp_photos', 'in_under_photos', 'nu_photos']
+
+class StaffFilter(FilterSet):
+    type = ModelMultipleChoiceFilter(field_name='type', to_field_name='id', queryset=StuffType.objects.all(),
+                                      label='Специальность',
+                                      widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': '5'}))
+    city = CharFilter(field_name='city', lookup_expr='icontains', label='Город', widget=forms.TextInput(attrs={'class': 'form-control'}))
+    gender = ChoiceFilter(choices=Stuff.GENDER_CHOICES, label='Пол', widget=forms.Select(attrs={'class': 'form-select'}))
+    tfp_photos = BooleanFilter(label='Сотрудничество по TFP', widget=forms.NullBooleanSelect(attrs={'class': 'form-select'}))
+
+    class Meta:
+        model = Stuff
+        fields = ['city', 'gender', 'tfp_photos']
 

@@ -24,11 +24,13 @@
 
                     {% for i in model_photos %}
                     <div class="col-2 mb-1 gallery" style="position: relative;">
+                        <a href="{{ i.image.url }}">
                         <img
                                 alt="{{ photo.caption }}"
                                 class="img-fluid rounded"
                                 src="{{ i.image.url }}"
                         />
+                        </a>
                         {% if post.owner == user %}
                         <button class="delete-photo-btn" data-photo-id="{{ i.pk }}"><i
                                 class="fa fa-trash opacity-25"></i></button>
