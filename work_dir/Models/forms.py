@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.forms import Textarea
-from multiupload.fields import MultiFileField
+from multiupload.fields import MultiImageField
 
 from .models import *
 
@@ -49,6 +49,8 @@ class LoginForm(AuthenticationForm):
                                widget=forms.TextInput(attrs={'class': 'form-control', 'name': 'username'}))
     password = forms.CharField(label='Пароль', max_length=30,
                                widget=forms.PasswordInput(attrs={'class': 'form-control', 'name': 'password'}))
+
+
 class CreateModelForm(forms.ModelForm):
     class Meta:
         model = Model
@@ -74,13 +76,80 @@ class CreateModelForm(forms.ModelForm):
             'in_under_photos': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'nu_photos': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'tfp_photos': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'avatar': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'avatar': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
-class CreatePh(forms.ModelForm):
+
+
+class PhForm(forms.ModelForm):
     class Meta:
         model = Photographer
-        fields = '__all__'
+        fields = ['city', 'age', 'gender', 'genre', 'about', 'in_under_photos', 'nu_photos', 'tfp_photos', 'avatar', 'is_published']
+
+    city = forms.CharField(
+        label='Город',
+        max_length=250,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+
+    age = forms.IntegerField(
+        label='Возраст',
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+
+    gender = forms.ChoiceField(
+        label='Пол',
+        choices=Photographer.GENDER_CHOICES,
+        initial='M',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    genre = forms.ModelMultipleChoiceField(
+        label='Жанр фотосъемки',
+        queryset=ShootingGenre.objects.all(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': '5'})
+    )
+
+    about = forms.CharField(
+        label='О себе',
+        widget=forms.Textarea(attrs={'rows': 5, 'class': 'form-control'}),
+        required=False
+    )
+
+    in_under_photos = forms.BooleanField(
+        label='Согласие на фото в нижнем белье/купальнике',
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
+    nu_photos = forms.BooleanField(
+        label='Согласие на ню-фото (18+)',
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
+    tfp_photos = forms.BooleanField(
+        label='Сотрудничество по ТФП',
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
+    avatar = forms.ImageField(
+        label='Фото профиля',
+        required=False,
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control'})
+    )
+
+    is_published = forms.BooleanField(
+        label='Опубликовать',
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
 
 class AgeRangeWidget(forms.MultiWidget):
     def __init__(self, attrs=None):
@@ -98,15 +167,20 @@ class AgeRangeWidget(forms.MultiWidget):
 
     def format_output(self, rendered_widgets):
         return '<div class="input-group">' + \
-               '<div class="input-group-prepend">' + \
-               '<span class="input-group-text">От</span>' + \
-               '</div>' + \
-               rendered_widgets[0] + \
-               '<div class="input-group-append">' + \
-               '<span class="input-group-text">До</span>' + \
-               '</div>' + \
-               rendered_widgets[1] + \
-               '</div>'
+            '<div class="input-group-prepend">' + \
+            '<span class="input-group-text">От</span>' + \
+            '</div>' + \
+            rendered_widgets[0] + \
+            '<div class="input-group-append">' + \
+            '<span class="input-group-text">До</span>' + \
+            '</div>' + \
+            rendered_widgets[1] + \
+            '</div>'
 
-class PhotoForm(forms.Form):
-    images = MultiImageField(max_file_size=1024*1024*5, max_num=25)
+
+class UploadImageForm(forms.ModelForm):
+    images = forms.ImageField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
+
+    class Meta:
+        model = Image
+        fields = ['images']

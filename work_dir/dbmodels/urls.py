@@ -30,16 +30,16 @@ urlpatterns = [
     path('profile/edit', edit_profile, name='edit_profile'),
     path('models/', ModelsPage.as_view(), name='models'),
     path('photographer/', PhotographerPage.as_view(), name='photographers'),
-    # path('stuff/', StuffView, name='stuff'),
+    # path('staff/', StuffView, name='staff'),
     path('studios/', home, name='studios'),
     # path('locations/', LocationsView, name='locations'),
-    path('gallery/', home, name='gallery'),
-    path('entry/', home, name='entry'),
-    path('post/<int:post_id>/', show_post, name='post'),
+    path('models/post/<int:post_id>/', show_model_post, name='model_post'),
+    path('ph/post/<int:post_id>/', show_ph_post, name='ph_post'),
     path('create_model/', model_form_view, name='create_model'),
-    path('create_ph/', CreatePh.as_view(), name='create_ph'),
-    path('upload_photos.html/', UploadPhotosView.as_view(), name='upload_photos'),
-    path('photos.html/', view_photos, name='view_photos'),
+    path('create_ph/', create_ph, name='create_ph'),
+    path('delete-photo/<int:photo_id>/', delete_photo, name='delete_photo'),
+    path('delete-photo-ph/<int:photo_id>/', delete_photo_ph, name='delete_photo'),
+    path('create-album/', create_album, name='create_album'),
 ]
 
 if settings.DEBUG:

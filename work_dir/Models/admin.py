@@ -6,4 +6,5 @@ from Models.models import *
 admin.site.register(Model)
 admin.site.register(Photographer)
 admin.site.register(Stuff)
-admin.site.register(Photo)
+admin.site.register(ShootingGenre)
+admin.site.register(StuffType)

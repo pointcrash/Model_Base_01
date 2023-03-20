@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.decorators import login_required
@@ -6,15 +8,17 @@ from django.contrib.auth.views import LoginView
 from django.db import IntegrityError
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, FormView
 from django_filters.views import FilterView
 
-from Models.filters import ModelFilter
+from Models.filters import ModelFilter, PhotographerFilter
 from Models.forms import *
 from Models.models import *
 
@@ -22,10 +26,12 @@ from Models.models import *
 def home(request):
     return render(request, 'bootstrap/homepage.html')
 
+
 @login_required
 def profile(request):
     context = {'user': request.user}
     return render(request, 'bootstrap/profile.html', context)
+
 
 @login_required
 def edit_profile(request):
@@ -39,6 +45,7 @@ def edit_profile(request):
         form = EditProfileForm(instance=user)
     return render(request, 'bootstrap/edit_profile.html', {'form': form})
 
+
 class RegisterUser(CreateView):
     form_class = CustomUserCreationForm
     template_name = 'bootstrap/register.html'
@@ -50,54 +57,115 @@ class RegisterUser(CreateView):
         login(self.request, user)
         return redirect('models')
 
+
 class CustomLoginView(LoginView):
     template_name = 'bootstrap/login.html'
     form_class = LoginForm
     success_url = '/home'
+
+
 def logout_user(request):
     logout(request)
     return redirect('login')
 
-menu = [
-    {'title': "Модели", 'url_name': 'models'},
-    # {'title': "Фотографы", 'url_name': 'photographers'},
-    # {'title': "Дополнительно", 'url_name': 'stuff'},
-    # {'title': "Фото", 'url_name': 'view_photos'},
-    # {'title': "Локации", 'url_name': 'locations'},
-    # {'title': "Галерея", 'url_name': 'gallery'},
-    # {'title': "Войти", 'url_name': 'entry'}
-]
 
 class ModelsPage(FilterView):
     model = Model
-    create = 'create_model'
     template_name = 'bootstrap/content.html'
     filterset_class = ModelFilter
-    extra_context = {'title': 'Модели'}
+    extra_context = {
+        'title': 'Модели',
+        'object': 'модели',
+        'create': 'create_model',
+        'post': 'model_post',
+    }
+    def get_queryset(self):
+        return Model.objects.filter(is_published=True)
 
-class PhotographerPage(ListView):
+
+class PhotographerPage(FilterView):
     model = Photographer
-    menu = menu
-    create = 'create_ph'
-    template_name = 'models/content.html'
-    context_object_name = "posts"
-    extra_context = {'menu': menu, 'create': create, 'title': 'Фотографы'}
+    template_name = 'bootstrap/content.html'
+    filterset_class = PhotographerFilter
+    extra_context = {
+        'title': 'Фотографы',
+        'object': 'фотографа',
+        'create': 'create_ph',
+        'post': 'ph_post',
+    }
 
     def get_queryset(self):
         return Photographer.objects.filter(is_published=True)
 
-def show_post(request, post_id):
-    post = get_object_or_404(Model, pk=post_id)
-    fields = post._meta.get_fields()
 
-    context = {
-        # 'fields': fields,
-        'post': post,
-        'menu': menu,
-        # 'title': post.owner,
+class PhotographerPage(FilterView):
+    model = Photographer
+    template_name = 'bootstrap/content.html'
+    filterset_class = PhotographerFilter
+    extra_context = {
+        'title': 'Стилисты',
+        'object': 'стилиста',
+        'create': 'create_ph',
+        'post': 'staff_post',
     }
 
-    return render(request, 'bootstrap/post.html', context=context)
+    def get_queryset(self):
+        return Photographer.objects.filter(is_published=True)
+
+
+
+def show_model_post(request, post_id):
+    post = get_object_or_404(Model, pk=post_id)
+    model_photos = Image.objects.filter(model=post)
+    albums = Album.objects.filter(user=post.owner)
+
+    if request.method == 'POST':
+        form = UploadImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            images = request.FILES.getlist('images') # get list of uploaded images
+            for image in images:
+                Image.objects.create(model=request.user.model, image=image) # create Image instance for each uploaded image
+            return redirect('model_post', post_id=request.user.model.pk)
+    else:
+        form = UploadImageForm()
+
+    context = {
+        'model_photos': model_photos,
+        'post': post,
+        'albums': albums,
+        'user': request.user,
+        'form': form,
+    }
+
+    return render(request, 'bootstrap/model_post.html', context=context)
+
+def show_ph_post(request, post_id):
+    post = get_object_or_404(Photographer, pk=post_id)
+    model_photos = ImagePh.objects.filter(model=post)
+    albums = Album.objects.filter(user=post.owner)
+    genres = post.genre.values_list('name', flat=True)
+
+    if request.method == 'POST':
+        form = UploadImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            images = request.FILES.getlist('images') # get list of uploaded images
+            for image in images:
+                ImagePh.objects.create(model=post, image=image) # create Image instance for each uploaded image
+            return redirect('ph_post', post_id=request.user.photographer.pk)
+    else:
+        form = UploadImageForm()
+
+    context = {
+        'model_photos': model_photos,
+        'post': post,
+        'albums': albums,
+        'user': request.user,
+        'form': form,
+        'genres': genres,
+    }
+
+    return render(request, 'bootstrap/ph_post.html', context=context)
+
 
 @login_required
 def model_form_view(request):
@@ -124,39 +192,40 @@ def model_form_view(request):
     context = {'form': form}
     return render(request, 'bootstrap/create_model.html', context)
 
-    # @receiver(pre_save, sender=Model)
-    # def set_owner(sender, instance, **kwargs):
-    #     if not instance.pk:  # Если это новый объект, то заполняем поле owner
-    #         instance.owner = instance.user
-
-class CreatePh(CreateView):
-    form_class = CreatePh
-    menu = menu
-    template_name = 'models/create_ph.html'
-    extra_context = {'menu': menu, 'title': 'Модели'}
+@login_required
+def create_ph(request):
+    if request.method == 'POST':
+        form = PhForm(request.POST, request.FILES)
+        if form.is_valid():
+            photographer = form.save(commit=False)
+            photographer.owner = request.user
+            photographer.save()
+            return redirect('ph_post', pk=photographer.pk)
+    else:
+        form = PhForm()
+    return render(request, 'bootstrap/create_ph.html', {'form': form})
 
 
 @login_required
-def view_photos(request):
-    photos = Photo.objects.all()
-    # filter(owner=request.user)
-    return render(request, 'models/photos.html', {'photos': photos})
+def delete_photo(request, photo_id):
+    photo = get_object_or_404(Image, pk=photo_id)
+    if photo.model.owner != request.user:
+        return JsonResponse({'status': 'error', 'message': 'Вы не можете удалить эту фотографию'})
+    photo.delete()
+    return JsonResponse({'status': 'ok', 'message': 'Фотография успешно удалена'})
 
+@login_required
+def delete_photo_ph(request, photo_id):
+    photo = get_object_or_404(ImagePh, pk=photo_id)
+    if photo.model.owner != request.user:
+        return JsonResponse({'status': 'error', 'message': 'Вы не можете удалить эту фотографию'})
+    photo.delete()
+    return JsonResponse({'status': 'ok', 'message': 'Фотография успешно удалена'})
 
-@method_decorator(login_required, name='dispatch')
-class UploadPhotosView(View):
-    template_name = 'models/upload_photos.html'
-
-    def get(self, request):
-        form = PhotoForm()
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        form = PhotoForm(request.POST, request.FILES)
-        if form.is_valid():
-            photo = form.save(commit=False)
-            photo.owner = request.user
-            photo.save()
-            return redirect('view_photos')
-        return render(request, self.template_name, {'form': form})
-
+def create_album(request):
+    if request.method == 'POST':
+        title = request.POST.get('title', '')
+        Album.objects.create(title=title, user=request.user)
+        albums = Album.objects.filter(user=request.user)
+        return render(request, 'post', {'albums': albums, "post_id": request.user.model.pk})
+    return JsonResponse({'error': 'Invalid request'})

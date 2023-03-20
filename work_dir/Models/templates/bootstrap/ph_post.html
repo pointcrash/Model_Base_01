@@ -1,0 +1,243 @@
+{% extends 'bootstrap/index.html' %}
+
+{% block content %}
+<style>
+    .delete-photo-btn {
+        position: absolute;
+        top: 5px;
+        right: 20px;
+        margin: 0px;
+        color: black;
+        border: none;
+        border-radius: 4px;
+        padding: 1px 4px;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .gallery {
+      padding: 5px
+    }
+    .gallery img {
+      width: 150px;
+      height: 200px;
+      object-fit: cover;
+    }
+    .modal-m {
+      margin-right: 50px
+    }
+    .modal-m11 {
+      margin-left: 50px
+    }
+
+</style>
+
+
+<section style="background-color: #eee;">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col">
+                <nav aria-label="breadcrumb" class="bg-light rounded-3 p-3 mb-4">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="#">User</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">User Profile</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        {% if post.avatar %}
+                        <img src="{{ post.avatar.url }}"
+                             alt="avatar"
+                             class="rounded-3 img-fluid" style="width: 250px;">
+                        {% endif %}
+                        <h5 class="my-3">{{ post.owner.first_name }} {{ post.owner.last_name }}</h5>
+                        <!--                        <p class="text-muted mb-1">Full Stack Developer</p>-->
+                        <!--                        <p class="text-muted mb-4">Bay Area, San Francisco, CA</p>-->
+                        {% if post.owner == user %}
+                        <div class="d-flex justify-content-center mb-2">
+                            <a href="{% url 'edit_profile' %}">
+                                <button type="button" class="btn btn-primary">Редактировать карточку</button>
+                            </a>
+                            <!--                            <button type="button" class="btn btn-outline-primary ms-1">Message</button>-->
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card mb-4 mb-lg-0">
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush rounded-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                <i class="fas fa-globe fa-lg text-warning"></i>
+                                <p class="mb-0">https://mdbootstrap.com</p>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                <i class="fab fa-vk fa-lg" style="color: #333333;"></i>
+                                <p class="mb-0">mdbootstrap</p>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                <i class="fab fa-telegram fa-lg" style="color: #55acee;"></i>
+                                <p class="mb-0">@mdbootstrap</p>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                <i class="fab fa-instagram fa-lg" style="color: #ac2bac;"></i>
+                                <p class="mb-0">mdbootstrap</p>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                <i class="fab fa-facebook-f fa-lg" style="color: #3b5998;"></i>
+                                <p class="mb-0">mdbootstrap</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-center">
+                            <h5>Фотографии</h5>
+                        </div>
+                        <div class="row">
+                            {% for i in model_photos|slice:":6" %}
+                            <div class="col-2 mb-1 gallery">
+                                <img
+                                        alt="{{ photo.caption }}"
+                                        class="img-fluid rounded"
+                                        src="{{ i.image.url }}"
+                                />
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            {% if post.owner == user %}
+                            <div class="m-2">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#uploadModal">Добавить фотографии
+                                </button>
+                            </div>
+                            {% include 'bootstrap/upload_image.html' %}
+                            {% endif %}
+                            <div class="m-2">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#exampleModal">Просмотреть все
+                                </button>
+                            </div>
+                            {% include 'bootstrap/gallery.html' %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <p class="mb-0">Имя/Фамилия</p>
+                            </div>
+                            <div class="col-sm-9">
+                                <p class="text-muted mb-0">{{ post.owner.first_name }} {{ post.owner.last_name }}</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <p class="mb-0">Город:</p>
+                            </div>
+                            <div class="col-sm-9">
+                                <p class="text-muted mb-0">{{ post.city }}</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <p class="mb-0">Возраст:</p>
+                            </div>
+                            <div class="col-sm-9">
+                                <p class="text-muted mb-0">{{ post.age }}</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <p class="mb-0">О себе:</p>
+                            </div>
+                            <div class="col-sm-9">
+                                <p class="text-muted mb-0">{{ post.about }}</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row align-items-center">
+                            <div class="col-sm-3">
+                                <p class="mb-0">Согласие на сотрудничество по модели ТФП:</p>
+                            </div>
+                            <div class="col-sm-9">
+                                <p class="text-muted mb-0">{% if post.tfp_photos %} Да {% else %} Нет {% endif %}</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row align-items-center">
+                            <div class="col-sm-3">
+                                <p class="mb-0">Возможна съемка в белье/купальнике:</p>
+                            </div>
+                            <div class="col-sm-9">
+                                <p class="text-muted mb-0">{% if post.in_under_photos %} Да {% else %} Нет {% endif %}</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <p class="mb-0">Возможна ню-съемка:</p>
+                            </div>
+                            <div class="col-sm-9">
+                                <p class="text-muted mb-0">{% if post.nu_photos %} Да {% else %} Нет {% endif %}</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row align-items-center">
+                            <div class="col-sm-3">
+                                <p class="mb-0">Жанры съемок:</p>
+                            </div>
+                            <div class="col-sm-9">
+                                <p class="text-muted mb-0">{% for genre in genres %} {{ genre }}<br> {% endfor %}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.querySelectorAll('.delete-photo-btn').forEach(function(button) {
+  button.addEventListener('click', function() {
+    var photoId = this.dataset.photoId;
+    if (confirm('Вы уверены, что хотите удалить эту фотографию?')) {
+      fetch('/delete-photo-ph/' + photoId + '/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({'photo_id': photoId})
+      })
+.then(function(response) {
+  if (response.ok) {
+    location.reload();
+  } else {
+    alert('Ошибка удаления фотографии');
+  }
+})
+      .catch(function(error) {
+        console.error('Ошибка удаления фотографии:', error);
+        alert('Ошибка удаления фотографии');
+      });
+    }
+  });
+});
+
+</script>
+
+{% endblock %}
