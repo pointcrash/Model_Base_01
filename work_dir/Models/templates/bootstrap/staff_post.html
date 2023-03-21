@@ -56,6 +56,7 @@
                              class="rounded-3 img-fluid" style="width: 250px;">
                         {% endif %}
                         <h5 class="my-3">{{ post.owner.first_name }} {{ post.owner.last_name }}</h5>
+                        <p class="text-muted mb-4">Последний раз в сети:<br> {{ post.owner.last_login.date }}</p>
                         <!--                        <p class="text-muted mb-1">Full Stack Developer</p>-->
                         <!--                        <p class="text-muted mb-4">Bay Area, San Francisco, CA</p>-->
                         {% if post.owner == user %}

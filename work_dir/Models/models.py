@@ -9,7 +9,7 @@ from multiupload.fields import MultiFileField
 
 # Create your models here.
 class Model(models.Model):
-    owner = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    owner = models.OneToOneField(User, on_delete=models.CASCADE, null=True, related_name='owner_model')
     city = models.CharField(max_length=250, null=True, verbose_name='Город')
     age = models.PositiveSmallIntegerField(verbose_name='Возраст')
     GENDER_CHOICES = [
@@ -52,6 +52,11 @@ class Model(models.Model):
     time_update = models.DateTimeField(auto_now=True)
     is_published = models.BooleanField(default=True, verbose_name='Опубликовать')
 
+    like = models.ManyToManyField(User, blank=True, related_name='like_model')
+
+    def like_count(self):
+        return self.likes.count()
+
     def __str__(self):
         return self.owner.username
 
@@ -60,7 +65,7 @@ class Model(models.Model):
 
 
 class Photographer(models.Model):
-    owner = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    owner = models.OneToOneField(User, on_delete=models.CASCADE, null=True, related_name='owner_ph')
     city = models.CharField(max_length=250, null=True, verbose_name='Город')
     age = models.PositiveSmallIntegerField(verbose_name='Возраст', null=True)
     GENDER_CHOICES = [
@@ -82,6 +87,11 @@ class Photographer(models.Model):
     time_update = models.DateTimeField(auto_now=True)
     is_published = models.BooleanField(default=True, verbose_name='Опубликовать')
 
+    like = models.ManyToManyField(User, blank=True, related_name='like_ph')
+
+    def like_count(self):
+        return self.likes.count()
+
     # def __str__(self):
     #     return self.owner.username
 
@@ -97,7 +107,7 @@ class ShootingGenre(models.Model):
 
 
 class Stuff(models.Model):
-    owner = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    owner = models.OneToOneField(User, on_delete=models.CASCADE, null=True, related_name='owner_stuff')
     city = models.CharField(max_length=250, null=True, verbose_name='Город')
     age = models.PositiveSmallIntegerField(verbose_name='Возраст', null=True)
     GENDER_CHOICES = [
@@ -116,6 +126,11 @@ class Stuff(models.Model):
     time_update = models.DateTimeField(auto_now=True)
     is_published = models.BooleanField(default=True, verbose_name='Опубликовать')
 
+    like = models.ManyToManyField(User, blank=True, related_name='like_stuff')
+
+    def like_count(self):
+        return self.likes.count()
+
     # def __str__(self):
     #     return self.owner.username
 
@@ -129,8 +144,9 @@ class StuffType(models.Model):
         return self.name
 
 
-class Locations(models.Model):
-    owner = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+class Location(models.Model):
+    name = models.CharField(max_length=50, verbose_name='Название')
+    owner = models.OneToOneField(User, on_delete=models.CASCADE, null=True, related_name='owner_loc')
     city = models.CharField(max_length=250, null=True, verbose_name='Город')
     about = models.TextField(null=True, verbose_name='О локации')
     how_to_go = models.TextField(null=True, verbose_name='Как добраться')
@@ -140,11 +156,91 @@ class Locations(models.Model):
     time_create = models.DateTimeField(auto_now_add=True)
     time_update = models.DateTimeField(auto_now=True)
 
+    like = models.ManyToManyField(User, blank=True, related_name='like_loc')
+
+    def like_count(self):
+        return self.likes.count()
+
     # def __str__(self):
     #     return self.owner.username
 
     def get_absolute_url(self):
         return reverse('post', kwargs={'post_id': self.pk})
+
+
+class Studio(models.Model):
+    name = models.CharField(max_length=50, verbose_name='Название')
+    owner = models.OneToOneField(User, on_delete=models.CASCADE, null=True, related_name='owner_studio')
+    city = models.CharField(max_length=250, null=True, verbose_name='Город')
+    about = models.TextField(null=True, verbose_name='О студии')
+    how_to_go = models.TextField(null=True, verbose_name='Как добраться')
+    point_link = models.URLField(null=True, verbose_name='Ссылка на карте')
+
+    image = models.ImageField(upload_to='studio/%Y/%m/%d/', blank=True, verbose_name='Фотографии места')
+    time_create = models.DateTimeField(auto_now_add=True)
+    time_update = models.DateTimeField(auto_now=True)
+
+    like = models.ManyToManyField(User, blank=True, related_name='like_studio')
+
+    def like_count(self):
+        return self.likes.count()
+
+    # def __str__(self):
+    #     return self.owner.username
+
+    def get_absolute_url(self):
+        return reverse('post', kwargs={'post_id': self.pk})
+
+
+class CommentModel(models.Model):
+    author = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    author_name = models.CharField(max_length=50, null=True)
+    asshole = models.ForeignKey(Model, on_delete=models.CASCADE, related_name='comments')
+    text = models.TextField(null=True)
+    created_date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.text
+
+class CommentPh(models.Model):
+    author = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    author_name = models.CharField(max_length=50, null=True)
+    asshole = models.ForeignKey(Photographer, on_delete=models.CASCADE, related_name='comments')
+    text = models.TextField(null=True)
+    created_date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.text
+
+class CommentStaff(models.Model):
+    author = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    author_name = models.CharField(max_length=50, null=True)
+    asshole = models.ForeignKey(Stuff, on_delete=models.CASCADE, related_name='comments')
+    text = models.TextField(null=True)
+    created_date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.text
+
+class CommentLocation(models.Model):
+    author = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    author_name = models.CharField(max_length=50, null=True)
+    asshole = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='comments')
+    text = models.TextField(null=True)
+    created_date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.text
+
+class CommentStudio(models.Model):
+    author = models.OneToOneField(User, on_delete=models.DO_NOTHING)
+    author_name = models.CharField(max_length=50, null=True)
+    asshole = models.ForeignKey(Studio, on_delete=models.CASCADE, related_name='comments')
+    text = models.TextField(null=True)
+    created_date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.text
 
 
 
@@ -163,21 +259,35 @@ class Album(models.Model):
 
 
 class Image(models.Model):
-    model = models.ForeignKey(Model, on_delete=models.CASCADE)
+    model = models.ForeignKey(Model, on_delete=models.CASCADE, null=True)
     album = models.ForeignKey(Album, on_delete=models.PROTECT, null=True)
     image = models.ImageField(upload_to=user_directory_path, null=True, blank=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class ImagePh(models.Model):
-    model = models.ForeignKey(Photographer, on_delete=models.CASCADE)
+    model = models.ForeignKey(Photographer, on_delete=models.CASCADE, null=True)
     album = models.ForeignKey(Album, on_delete=models.PROTECT, null=True)
     image = models.ImageField(upload_to=user_directory_path, null=True, blank=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class ImageStuff(models.Model):
-    model = models.ForeignKey(Stuff, on_delete=models.CASCADE)
+    model = models.ForeignKey(Stuff, on_delete=models.CASCADE, null=True)
+    album = models.ForeignKey(Album, on_delete=models.PROTECT, null=True)
+    image = models.ImageField(upload_to=user_directory_path, null=True, blank=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class ImageLocation(models.Model):
+    model = models.ForeignKey(Location, on_delete=models.CASCADE, null=True)
+    album = models.ForeignKey(Album, on_delete=models.PROTECT, null=True)
+    image = models.ImageField(upload_to=user_directory_path, null=True, blank=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class ImageStudio(models.Model):
+    model = models.ForeignKey(Studio, on_delete=models.CASCADE, null=True)
     album = models.ForeignKey(Album, on_delete=models.PROTECT, null=True)
     image = models.ImageField(upload_to=user_directory_path, null=True, blank=True)
     description = models.CharField(max_length=255, blank=True, null=True)

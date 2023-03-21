@@ -1,4 +1,0 @@
-services:
-  web:
-    environment:
-      - LANG=ru_RU.UTF-8
